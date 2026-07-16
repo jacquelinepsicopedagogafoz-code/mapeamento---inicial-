@@ -20,12 +20,15 @@
   .opt-btn { transition: all 0.15s ease; }
   .opt-btn:hover { transform: translateY(-1px); }
   a { text-decoration: none; }
+  input { font-family: inherit; }
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
 const { useState } = React;
+
+const WEB3FORMS_KEY = "c196d5f1-fe9c-419a-b164-b772b4a216b6";
 
 const COLORS = {
   teal: "#085041", tealMid: "#1D9E75", tealLight: "#E1F5EE", tealAcc: "#9FE1CB",
@@ -34,49 +37,92 @@ const COLORS = {
   white: "#FFFFFF", cream: "#FAF7F2",
 };
 
+const SCALE = [
+  { v: 0, label: "Nunca" },
+  { v: 1, label: "Raramente" },
+  { v: 2, label: "Às vezes" },
+  { v: 3, label: "Frequentemente" },
+  { v: 4, label: "Quase sempre" },
+];
+
+const AREAS = ["Trabalho", "Estudos", "Rotina em casa", "Relacionamentos", "Várias áreas"];
+const FAIXAS = ["Até 24 anos", "25 a 34 anos", "35 a 44 anos", "45 a 59 anos", "60 anos ou mais"];
+
 const BLOCKS = [
   { key: "execucao", label: "Execução", number: "01", title: "Execução e Iniciação", subtitle: "Dificuldade de começar e terminar",
     items: [
-      { text: "Sei o que precisa ser feito, mas não consigo começar.", note: "A tarefa fica na cabeça por horas — ou dias — sem sair do lugar." },
-      { text: "Começo com energia e abandono antes de terminar.", note: "O início é fácil. Manter até o fim é o problema real." },
-      { text: "Preciso de pressão ou prazo urgente para agir.", note: "Sem deadline, a tarefa simplesmente não acontece." },
-      { text: "Tenho muitas ideias mas executo poucas.", note: "O planejamento é rico. A execução é escassa." },
-      { text: "Deixo tarefas simples acumularem por muito tempo.", note: "Coisas de 5 minutos ficam semanas sem serem feitas." },
-      { text: "Sinto que estou sempre atrasada em relação ao que deveria ter feito.", note: "A sensação de déficit é constante, independente do que entrega." },
+      "Tenho dificuldade para iniciar tarefas importantes, mesmo sabendo que precisam ser feitas.",
+      "Adio atividades mesmo sabendo que são importantes.",
+      "Só consigo produzir quando o prazo está quase acabando.",
+      "Começo tarefas com energia e abandono antes de terminar.",
+      "Acumulo várias tarefas antes de conseguir começar a resolvê-las.",
+      "Sinto que meu cérebro 'trava' antes de começar algo.",
     ]},
   { key: "atencao", label: "Atenção", number: "02", title: "Atenção e Memória", subtitle: "Como seu cérebro processa informação",
     items: [
-      { text: "Esqueço o que estava fazendo no meio da tarefa.", note: "Uma interrupção é suficiente para perder completamente o fio." },
-      { text: "Tenho dificuldade de manter o foco em algo que não me interessa.", note: "Se não há interesse ou urgência, o cérebro simplesmente não prende." },
-      { text: "Leio um texto e preciso reler porque não absorvi nada.", note: "Os olhos passam pelas palavras, mas o conteúdo não fica." },
-      { text: "Me distraio facilmente com estímulos externos ou pensamentos.", note: "Um barulho, uma notificação, um pensamento — e o foco vai embora." },
-      { text: "Esqueço compromissos, prazos ou informações importantes.", note: "Mesmo com lembretes, algo sempre passa." },
-      { text: "Tenho dificuldade de acompanhar conversas longas ou reuniões.", note: "A mente deriva antes de chegar ao final." },
+      "Esqueço o que estava fazendo no meio de uma tarefa.",
+      "Tenho dificuldade de manter o foco em algo que não me interessa.",
+      "Leio um texto e preciso reler porque não absorvi nada.",
+      "Me distraio facilmente com estímulos externos ou pensamentos.",
+      "Esqueço compromissos, prazos ou informações importantes.",
+      "Perco muito tempo em redes sociais ou outras distrações sem perceber.",
     ]},
   { key: "emocional", label: "Emocional", number: "03", title: "Regulação Emocional", subtitle: "Como você lida com frustração e pressão",
     items: [
-      { text: "Reajo com intensidade desproporcional a situações cotidianas.", note: "A resposta emocional chega antes de você conseguir pensar." },
-      { text: "Pequenas frustrações me tiram do sério com facilidade.", note: "O que parece pequeno de fora, por dentro é grande." },
-      { text: "Sinto vergonha ou culpa forte por coisas que outras pessoas levam na esportiva.", note: "A régua interna é mais dura do que precisa ser." },
-      { text: "Tenho dificuldade de me acalmar depois de me irritar ou me frustrar.", note: "Leva tempo pra voltar ao normal depois de uma reação forte." },
-      { text: "Sinto que minhas emoções mudam rápido, sem aviso.", note: "Uma hora está bem, na outra já não está." },
-      { text: "Evito situações só para não correr o risco de me frustrar.", note: "A antecipação da frustração já é motivo suficiente pra evitar." },
+      "Reajo com intensidade desproporcional a situações do dia a dia.",
+      "Sinto preocupação constante, mesmo sem um motivo claro.",
+      "Perco o interesse ou o prazer em coisas que antes gostava de fazer.",
+      "Fico inquieta ou tensa a ponto de ser difícil relaxar.",
+      "Sinto-me cansada ou sem energia mesmo depois de descansar.",
+      "Sinto culpa ou frustração forte depois de não conseguir fazer algo que eu queria.",
     ]},
-  { key: "social", label: "Traços TEA", number: "04", title: "Sensorial e Social", subtitle: "Como você processa o ambiente e as interações",
+  { key: "social", label: "Sensorial/Social", number: "04", title: "Sensorial e Social", subtitle: "Como você processa o ambiente e as interações",
     items: [
-      { text: "Sons, luzes ou texturas específicas me incomodam mais do que parecem incomodar outras pessoas.", note: "O ambiente pode ficar insuportável por razões que os outros nem percebem." },
-      { text: "Prefiro rotinas previsíveis e fico desconfortável quando elas mudam de repente.", note: "A mudança inesperada custa mais energia do que deveria." },
-      { text: "Preciso de tempo sozinha para recarregar depois de interações sociais.", note: "Estar com pessoas, mesmo que bem, tem um custo que precisa ser reposto." },
-      { text: "Tenho interesses profundos e específicos que ocupam boa parte da minha atenção.", note: "Quando o assunto interessa, o mergulho é total." },
-      { text: "Sinto que preciso 'atuar' ou estudar como agir em situações sociais.", note: "O que parece natural pros outros, pra você é um roteiro decorado." },
-      { text: "Fico exausta depois de um dia com muito estímulo, mesmo sem esforço físico.", note: "O cansaço é real, mesmo sem explicação óbvia pra quem olha de fora." },
+      "Sons, luzes ou texturas específicas me incomodam mais do que parecem incomodar outras pessoas.",
+      "Prefiro fazer as coisas sempre do mesmo jeito e fico desconfortável com mudanças repentinas.",
+      "Tenho dificuldade de perceber o que a outra pessoa está sentindo só olhando pra ela.",
+      "Me envolvo tão profundamente em um assunto que perco a noção do que está ao redor.",
+      "Sinto que preciso 'estudar' ou decorar como agir em situações sociais.",
+      "Reparo em detalhes ou padrões que a maioria das pessoas não percebe.",
     ]},
 ];
 
-const TOTAL_QUESTIONS = BLOCKS.reduce((sum, b) => sum + b.items.length, 0);
+const TOTAL_QUESTIONS = BLOCKS.reduce((s, b) => s + b.items.length, 0);
+const MAX_SCORE = TOTAL_QUESTIONS * 4;
+
+const AREA_TEXT = {
+  "Trabalho": "no trabalho, isso costuma aparecer como prazos apertados, retrabalho ou a sensação de nunca estar em dia.",
+  "Estudos": "nos estudos, isso costuma aparecer como dificuldade de manter uma rotina de leitura ou terminar trabalhos a tempo.",
+  "Rotina em casa": "na rotina de casa, isso costuma aparecer como tarefas domésticas acumuladas ou dificuldade de manter organização.",
+  "Relacionamentos": "nos relacionamentos, isso costuma aparecer como dificuldade de acompanhar combinados ou reações emocionais que pesam nas relações.",
+  "Várias áreas": "isso costuma aparecer espalhado por várias áreas da sua vida ao mesmo tempo, sem um lugar só onde se concentra.",
+};
+
+const TIPS = {
+  execucao: [
+    "Divida a tarefa em uma ação de no máximo 2 minutos. Cérebros que travam na iniciação costumam destravar com o menor passo possível, não com o maior.",
+    "Troque 'terminar a tarefa' por 'começar a tarefa' como meta do dia.",
+    "Deixe o ambiente pronto na noite anterior — reduzir decisões no momento de começar ajuda.",
+  ],
+  atencao: [
+    "Trabalhe em blocos curtos (15–25 minutos) com pausas programadas, em vez de tentar manter foco longo.",
+    "Anote tudo no momento em que pensar — memória de trabalho não é falha de caráter, é limitação real.",
+    "Elimine estímulos concorrentes antes de começar, não durante.",
+  ],
+  emocional: [
+    "Nomeie a emoção em voz alta ou por escrito assim que perceber a reação — isso já reduz a intensidade.",
+    "Dê a si mesma um intervalo de alguns minutos antes de reagir a uma frustração.",
+    "Troque autocrítica por curiosidade: em vez de 'por que fiz isso de novo', pergunte 'o que estava acontecendo antes disso'.",
+  ],
+  social: [
+    "Permita-se tempo sozinha depois de interações sociais, sem culpa — é recarga, não antissocialidade.",
+    "Ajuste o ambiente ao seu redor quando possível, em vez de tentar se adaptar a ele.",
+    "Prepare roteiros simples para situações sociais previsíveis — isso reduz o custo de 'atuar'.",
+  ],
+};
 
 function getBand(total) {
-  const pct = total / TOTAL_QUESTIONS;
+  const pct = total / MAX_SCORE;
   if (pct < 0.25) return { label: "Padrão pontual", text: "Seus resultados apontam sinais isolados, não um padrão consistente. Isso não significa que nada mereça atenção — só que, pelo que você respondeu aqui, não há um conjunto forte de indícios." };
   if (pct < 0.5) return { label: "Padrão moderado", text: "Existe um conjunto de sinais que aparece com certa frequência. Vale entender com mais profundidade se esses pontos têm relação entre si e o que eles revelam sobre o seu funcionamento." };
   if (pct < 0.75) return { label: "Padrão consistente", text: "Os sinais aparecem de forma consistente em várias áreas da sua vida. Esse tipo de padrão costuma justificar uma investigação mais aprofundada, com acompanhamento profissional." };
@@ -89,17 +135,14 @@ function RadarChart({ data }) {
   const maxR = size / 2 - 44;
   const n = data.length;
   const angleFor = (i) => (Math.PI * 2 * i) / n - Math.PI / 2;
-
   function pointFor(i, fraction) {
     const angle = angleFor(i);
     const r = maxR * fraction;
     return [center + r * Math.cos(angle), center + r * Math.sin(angle)];
   }
-
   const rings = [0.25, 0.5, 0.75, 1];
   const dataPoints = data.map((d, i) => pointFor(i, d.value / d.fullMark));
   const dataPath = dataPoints.map((p) => p.join(",")).join(" ");
-
   return (
     <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="280">
       {rings.map((f, ri) => {
@@ -111,14 +154,11 @@ function RadarChart({ data }) {
         return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke={COLORS.grayB} strokeWidth="1" />;
       })}
       <polygon points={dataPath} fill={COLORS.tealMid} fillOpacity="0.35" stroke={COLORS.teal} strokeWidth="2" />
-      {dataPoints.map((p, i) => (
-        <circle key={i} cx={p[0]} cy={p[1]} r="3.5" fill={COLORS.teal} />
-      ))}
+      {dataPoints.map((p, i) => (<circle key={i} cx={p[0]} cy={p[1]} r="3.5" fill={COLORS.teal} />))}
       {data.map((d, i) => {
         const [x, y] = pointFor(i, 1.28);
         return (
-          <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle"
-            fontSize="12" fontFamily="Jost" fill={COLORS.grayD}>
+          <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="11.5" fontFamily="Jost" fill={COLORS.grayD}>
             {d.subject}
           </text>
         );
@@ -127,51 +167,90 @@ function RadarChart({ data }) {
   );
 }
 
+function Progress({ pct }) {
+  return (
+    <div style={{ height: 4, background: COLORS.grayB, borderRadius: 4, marginBottom: 28, overflow: "hidden" }}>
+      <div style={{ height: "100%", width: `${pct}%`, background: COLORS.teal, borderRadius: 4, transition: "width 0.3s ease" }} />
+    </div>
+  );
+}
+
 function MapeamentoInicial() {
   const [screen, setScreen] = useState("intro");
   const [blockIndex, setBlockIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [nome, setNome] = useState("");
+  const [faixa, setFaixa] = useState("");
+  const [area, setArea] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
 
   const currentBlock = BLOCKS[blockIndex];
 
-  function setAnswer(blockKey, itemIndex, value) {
-    setAnswers((prev) => ({ ...prev, [`${blockKey}-${itemIndex}`]: value }));
+  function setAnswer(blockKey, i, value) {
+    setAnswers((prev) => ({ ...prev, [`${blockKey}-${i}`]: value }));
   }
   function blockAnswered(block) {
     return block.items.every((_, i) => answers[`${block.key}-${i}`] !== undefined);
   }
   function blockScore(block) {
-    return block.items.reduce((sum, _, i) => sum + (answers[`${block.key}-${i}`] ? 1 : 0), 0);
+    return block.items.reduce((s, _, i) => s + (answers[`${block.key}-${i}`] ?? 0), 0);
   }
 
-  const total = BLOCKS.reduce((sum, b) => sum + blockScore(b), 0);
+  const total = BLOCKS.reduce((s, b) => s + blockScore(b), 0);
   const band = getBand(total);
-  const radarData = BLOCKS.map((b) => ({ subject: b.label, value: blockScore(b), fullMark: b.items.length }));
+  const radarData = BLOCKS.map((b) => ({ subject: b.label, value: blockScore(b), fullMark: b.items.length * 4 }));
   const dominantIndex = BLOCKS.reduce((best, b, i) => (blockScore(b) > blockScore(BLOCKS[best]) ? i : best), 0);
-  const progress = screen === "questions" ? Math.round((blockIndex / BLOCKS.length) * 100) : screen === "result" ? 100 : 0;
+  const dominantBlock = BLOCKS[dominantIndex];
+
+  const progressPct =
+    screen === "personalizacao" ? 5 :
+    screen === "instrucoes" ? 8 :
+    screen === "questions" ? 10 + Math.round((blockIndex / BLOCKS.length) * 70) :
+    screen === "contato" ? 85 :
+    screen === "resultado" ? 100 : 0;
+
+  async function submitContact(e) {
+    e.preventDefault();
+    setSending(true);
+    try {
+      await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: "Novo lead — Mapeamento Inicial",
+          nome, faixa_etaria: faixa, area, whatsapp, email,
+          pontuacao: `${total}/${MAX_SCORE}`,
+          faixa_resultado: band.label,
+        }),
+      });
+    } catch (err) {
+      // segue mesmo se falhar o envio — não bloqueia a entrega do resultado
+    }
+    setSending(false);
+    setScreen("resultado");
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.cream, display: "flex", justifyContent: "center", padding: "0 0 60px" }}>
       <div style={{ width: "100%", maxWidth: 480, padding: "28px 20px" }}>
-        {screen !== "intro" && (
-          <div style={{ height: 4, background: COLORS.grayB, borderRadius: 4, marginBottom: 28, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${progress}%`, background: COLORS.teal, borderRadius: 4, transition: "width 0.3s ease" }} />
-          </div>
-        )}
+        {screen !== "intro" && <Progress pct={progressPct} />}
 
         {screen === "intro" && (
           <div className="fade-in">
             <p style={{ fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, marginBottom: 10 }}>
               Mapeamento Inicial
             </p>
-            <h1 className="serif" style={{ fontSize: 30, lineHeight: 1.25, color: COLORS.grayD, marginBottom: 16 }}>
+            <h1 className="serif" style={{ fontSize: 29, lineHeight: 1.25, color: COLORS.grayD, marginBottom: 16 }}>
               Você sabe exatamente o que precisa fazer.<br />E mesmo assim não consegue.
             </h1>
-            <p style={{ fontSize: 15, color: COLORS.grayM, lineHeight: 1.65, marginBottom: 24 }}>
-              Isso pode ser só uma fase. Ou pode ser um padrão — de como o seu cérebro funciona de verdade.
-              Em poucos minutos, você mapeia os seus sinais em quatro áreas e recebe um retrato inicial do seu funcionamento.
+            <p style={{ fontSize: 15, color: COLORS.grayM, lineHeight: 1.65, marginBottom: 20 }}>
+              Talvez esse seja o momento em que você para de se cobrar e começa a se entender.
+              Não é só um teste — é um primeiro espelho com direção inicial.
             </p>
-            <div style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 16, padding: "20px 20px", marginBottom: 28 }}>
+            <div style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 16, padding: "20px 20px", marginBottom: 24 }}>
               {BLOCKS.map((b, i) => (
                 <div key={b.key} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < BLOCKS.length - 1 ? `1px solid ${COLORS.grayL}` : "none" }}>
                   <span className="serif" style={{ fontSize: 13, color: COLORS.tealAcc, fontWeight: 600, minWidth: 20 }}>{b.number}</span>
@@ -179,8 +258,13 @@ function MapeamentoInicial() {
                 </div>
               ))}
             </div>
-            <button className="opt-btn" onClick={() => setScreen("questions")}
-              style={{ width: "100%", background: COLORS.teal, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600, letterSpacing: "0.02em" }}>
+            <div style={{ background: COLORS.tealLight, borderRadius: 12, padding: "12px 16px", marginBottom: 24 }}>
+              <p style={{ fontSize: 12, color: COLORS.teal, lineHeight: 1.5 }}>
+                Instrumentos de referência: ASRS-18 · AQ-10 · PHQ-9 · GAD-7
+              </p>
+            </div>
+            <button className="opt-btn" onClick={() => setScreen("personalizacao")}
+              style={{ width: "100%", background: COLORS.teal, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600 }}>
               Começar meu mapeamento
             </button>
             <p style={{ fontSize: 12, color: COLORS.grayM, textAlign: "center", marginTop: 12 }}>
@@ -189,35 +273,110 @@ function MapeamentoInicial() {
           </div>
         )}
 
+        {screen === "personalizacao" && (
+          <div className="fade-in">
+            <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, marginBottom: 6 }}>
+              Antes de começar
+            </p>
+            <h2 className="serif" style={{ fontSize: 23, color: COLORS.grayD, marginBottom: 20 }}>
+              Vamos te conhecer um pouco
+            </h2>
+
+            <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.grayD, display: "block", marginBottom: 6 }}>Nome</label>
+            <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Seu nome"
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${COLORS.grayB}`, fontSize: 15, marginBottom: 20, background: COLORS.white }} />
+
+            <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.grayD, display: "block", marginBottom: 6 }}>Faixa etária</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+              {FAIXAS.map((f) => (
+                <button key={f} className="opt-btn" onClick={() => setFaixa(f)}
+                  style={{ padding: "9px 14px", borderRadius: 20, border: `1.5px solid ${faixa === f ? COLORS.teal : COLORS.grayB}`,
+                    background: faixa === f ? COLORS.teal : COLORS.white, color: faixa === f ? COLORS.white : COLORS.grayD, fontSize: 13.5 }}>
+                  {f}
+                </button>
+              ))}
+            </div>
+
+            <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.grayD, display: "block", marginBottom: 6 }}>Em qual área você percebe mais dificuldade?</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 28 }}>
+              {AREAS.map((a) => (
+                <button key={a} className="opt-btn" onClick={() => setArea(a)}
+                  style={{ padding: "9px 14px", borderRadius: 20, border: `1.5px solid ${area === a ? COLORS.teal : COLORS.grayB}`,
+                    background: area === a ? COLORS.teal : COLORS.white, color: area === a ? COLORS.white : COLORS.grayD, fontSize: 13.5 }}>
+                  {a}
+                </button>
+              ))}
+            </div>
+
+            <button disabled={!nome || !faixa || !area} className="opt-btn"
+              onClick={() => setScreen("instrucoes")}
+              style={{ width: "100%", background: (nome && faixa && area) ? COLORS.teal : COLORS.grayB, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600 }}>
+              Continuar
+            </button>
+          </div>
+        )}
+
+        {screen === "instrucoes" && (
+          <div className="fade-in">
+            <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, marginBottom: 6 }}>
+              Como responder
+            </p>
+            <h2 className="serif" style={{ fontSize: 23, color: COLORS.grayD, marginBottom: 16 }}>
+              Pense em como você tem funcionado nos últimos seis meses
+            </h2>
+            <p style={{ fontSize: 14, color: COLORS.grayM, marginBottom: 20 }}>
+              Escolha a alternativa que melhor representa sua realidade:
+            </p>
+            <div style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 14, overflow: "hidden", marginBottom: 28 }}>
+              {SCALE.map((s, i) => (
+                <div key={s.v} style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 16px", background: i % 2 ? COLORS.grayL : COLORS.white }}>
+                  <span className="serif" style={{ fontWeight: 700, color: COLORS.teal, minWidth: 16 }}>{s.v}</span>
+                  <span style={{ fontSize: 14.5, color: COLORS.grayD }}>{s.label}</span>
+                </div>
+              ))}
+            </div>
+            <button className="opt-btn" onClick={() => setScreen("questions")}
+              style={{ width: "100%", background: COLORS.teal, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600 }}>
+              Começar
+            </button>
+          </div>
+        )}
+
         {screen === "questions" && (
           <div className="fade-in" key={currentBlock.key}>
             <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, marginBottom: 6 }}>
               Bloco {currentBlock.number} de 0{BLOCKS.length}
             </p>
-            <h2 className="serif" style={{ fontSize: 24, color: COLORS.grayD, marginBottom: 4 }}>{currentBlock.title}</h2>
-            <p style={{ fontSize: 14, color: COLORS.grayM, marginBottom: 22 }}>{currentBlock.subtitle}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 26 }}>
-              {currentBlock.items.map((item, i) => {
+            <h2 className="serif" style={{ fontSize: 23, color: COLORS.grayD, marginBottom: 4 }}>{currentBlock.title}</h2>
+            <p style={{ fontSize: 14, color: COLORS.grayM, marginBottom: 20 }}>{currentBlock.subtitle}</p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 26 }}>
+              {currentBlock.items.map((text, i) => {
                 const key = `${currentBlock.key}-${i}`;
                 const val = answers[key];
                 return (
                   <div key={key} style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 14, padding: "16px 16px" }}>
-                    <p style={{ fontSize: 14.5, color: COLORS.grayD, lineHeight: 1.5, marginBottom: 4 }}>{item.text}</p>
-                    <p style={{ fontSize: 12.5, color: COLORS.grayM, lineHeight: 1.5, marginBottom: 12 }}>{item.note}</p>
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <button className="opt-btn" onClick={() => setAnswer(currentBlock.key, i, true)}
-                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${val === true ? COLORS.teal : COLORS.grayB}`, background: val === true ? COLORS.tealLight : COLORS.white, color: val === true ? COLORS.teal : COLORS.grayM, fontWeight: 600, fontSize: 13.5 }}>
-                        Sim
-                      </button>
-                      <button className="opt-btn" onClick={() => setAnswer(currentBlock.key, i, false)}
-                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${val === false ? COLORS.rose : COLORS.grayB}`, background: val === false ? COLORS.roseLight : COLORS.white, color: val === false ? COLORS.rose : COLORS.grayM, fontWeight: 600, fontSize: 13.5 }}>
-                        Não
-                      </button>
+                    <p style={{ fontSize: 14.5, color: COLORS.grayD, lineHeight: 1.5, marginBottom: 12 }}>{text}</p>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {SCALE.map((s) => (
+                        <button key={s.v} className="opt-btn" onClick={() => setAnswer(currentBlock.key, i, s.v)}
+                          title={s.label}
+                          style={{ flex: 1, padding: "8px 2px", borderRadius: 8, border: `1.5px solid ${val === s.v ? COLORS.teal : COLORS.grayB}`,
+                            background: val === s.v ? COLORS.tealLight : COLORS.white, color: val === s.v ? COLORS.teal : COLORS.grayM,
+                            fontWeight: 700, fontSize: 13.5 }}>
+                          {s.v}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                      <span style={{ fontSize: 9.5, color: COLORS.grayM }}>Nunca</span>
+                      <span style={{ fontSize: 9.5, color: COLORS.grayM }}>Quase sempre</span>
                     </div>
                   </div>
                 );
               })}
             </div>
+
             <div style={{ display: "flex", gap: 10 }}>
               {blockIndex > 0 && (
                 <button onClick={() => setBlockIndex((b) => b - 1)}
@@ -226,44 +385,92 @@ function MapeamentoInicial() {
                 </button>
               )}
               <button disabled={!blockAnswered(currentBlock)}
-                onClick={() => { if (blockIndex < BLOCKS.length - 1) setBlockIndex((b) => b + 1); else setScreen("result"); }}
-                style={{ flex: 1, padding: "14px 18px", borderRadius: 12, border: "none", background: blockAnswered(currentBlock) ? COLORS.teal : COLORS.grayB, color: COLORS.white, fontSize: 14, fontWeight: 600, opacity: blockAnswered(currentBlock) ? 1 : 0.7 }}>
-                {blockIndex < BLOCKS.length - 1 ? "Próximo bloco →" : "Ver meu mapa"}
+                onClick={() => { if (blockIndex < BLOCKS.length - 1) setBlockIndex((b) => b + 1); else setScreen("contato"); }}
+                style={{ flex: 1, padding: "14px 18px", borderRadius: 12, border: "none", background: blockAnswered(currentBlock) ? COLORS.teal : COLORS.grayB, color: COLORS.white, fontSize: 14, fontWeight: 600 }}>
+                {blockIndex < BLOCKS.length - 1 ? "Próximo bloco →" : "Ver meu resultado"}
               </button>
             </div>
           </div>
         )}
 
-        {screen === "result" && (
+        {screen === "contato" && (
+          <div className="fade-in">
+            <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, marginBottom: 6 }}>
+              Última etapa
+            </p>
+            <h2 className="serif" style={{ fontSize: 22, color: COLORS.grayD, marginBottom: 20 }}>
+              Preencha seus dados para receber seu resultado completo e o e-book
+            </h2>
+            <form onSubmit={submitContact}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.grayD, display: "block", marginBottom: 6 }}>Nome</label>
+              <input value={nome} onChange={(e) => setNome(e.target.value)} required
+                style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${COLORS.grayB}`, fontSize: 15, marginBottom: 16, background: COLORS.white }} />
+
+              <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.grayD, display: "block", marginBottom: 6 }}>WhatsApp</label>
+              <input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} required placeholder="(45) 99999-9999"
+                style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${COLORS.grayB}`, fontSize: 15, marginBottom: 16, background: COLORS.white }} />
+
+              <label style={{ fontSize: 13, fontWeight: 600, color: COLORS.grayD, display: "block", marginBottom: 6 }}>E-mail</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="voce@email.com"
+                style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: `1.5px solid ${COLORS.grayB}`, fontSize: 15, marginBottom: 22, background: COLORS.white }} />
+
+              <p style={{ fontSize: 11.5, color: COLORS.grayM, lineHeight: 1.5, marginBottom: 20 }}>
+                Autorizo o envio do meu resultado e de conteúdos relacionados. Meus dados serão tratados com respeito à privacidade.
+              </p>
+
+              <button type="submit" disabled={sending} className="opt-btn"
+                style={{ width: "100%", background: COLORS.teal, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600, opacity: sending ? 0.7 : 1 }}>
+                {sending ? "Enviando..." : "Ver meu resultado e receber o e-book"}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {screen === "resultado" && (
           <div className="fade-in">
             <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, textAlign: "center", marginBottom: 6 }}>
               Seu resultado
             </p>
-            <h2 className="serif" style={{ fontSize: 28, color: COLORS.grayD, textAlign: "center", marginBottom: 4 }}>Mapa de Funcionamento</h2>
+            <h2 className="serif" style={{ fontSize: 27, color: COLORS.grayD, textAlign: "center", marginBottom: 4 }}>
+              {nome ? `${nome}, aqui está seu Mapa` : "Seu Mapa de Funcionamento"}
+            </h2>
             <p style={{ fontSize: 13, color: COLORS.grayM, textAlign: "center", marginBottom: 20 }}>
-              Área com padrão mais forte: <strong style={{ color: COLORS.teal }}>{BLOCKS[dominantIndex].label}</strong>
+              Área com padrão mais forte: <strong style={{ color: COLORS.teal }}>{dominantBlock.label}</strong>
             </p>
+
             <div style={{ background: COLORS.white, borderRadius: 16, border: `1px solid ${COLORS.grayB}`, padding: "20px 8px 8px", marginBottom: 20, display: "flex", justifyContent: "center" }}>
               <RadarChart data={radarData} />
             </div>
-            <div style={{ background: COLORS.grayD, color: COLORS.white, borderRadius: 16, padding: "28px 24px", textAlign: "center", marginBottom: 20 }}>
-              <p className="serif" style={{ fontSize: 44, marginBottom: 2 }}>
-                {total}<span style={{ fontSize: 18, color: COLORS.grayB }}>/{TOTAL_QUESTIONS}</span>
+
+            <div style={{ background: COLORS.grayD, color: COLORS.white, borderRadius: 16, padding: "26px 22px", textAlign: "center", marginBottom: 20 }}>
+              <p style={{ fontSize: 11.5, color: COLORS.grayB, marginBottom: 6 }}>Sua pontuação: 0 a {MAX_SCORE}</p>
+              <p className="serif" style={{ fontSize: 42, marginBottom: 4 }}>
+                {total}<span style={{ fontSize: 17, color: COLORS.grayB }}>/{MAX_SCORE}</span>
               </p>
               <p style={{ fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: COLORS.amber, fontWeight: 600, marginBottom: 10 }}>
                 {band.label}
               </p>
               <p style={{ fontSize: 14, color: COLORS.grayB, lineHeight: 1.6, maxWidth: 380, margin: "0 auto" }}>{band.text}</p>
             </div>
+
+            {area && (
+              <div style={{ background: COLORS.roseLight, borderRadius: 14, padding: "16px 18px", marginBottom: 20 }}>
+                <p style={{ fontSize: 13.5, color: COLORS.rose, lineHeight: 1.6 }}>
+                  Você disse que sente mais dificuldade em <strong>{area}</strong> — {AREA_TEXT[area]}
+                </p>
+              </div>
+            )}
+
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
               {BLOCKS.map((b) => {
                 const score = blockScore(b);
-                const pct = Math.round((score / b.items.length) * 100);
+                const maxB = b.items.length * 4;
+                const pct = Math.round((score / maxB) * 100);
                 return (
                   <div key={b.key} style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 12, padding: "12px 16px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                       <span style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.grayD }}>{b.title}</span>
-                      <span style={{ fontSize: 13, color: COLORS.tealMid, fontWeight: 600 }}>{score}/{b.items.length}</span>
+                      <span style={{ fontSize: 13, color: COLORS.tealMid, fontWeight: 600 }}>{score}/{maxB}</span>
                     </div>
                     <div style={{ height: 6, background: COLORS.grayL, borderRadius: 4, overflow: "hidden" }}>
                       <div style={{ height: "100%", width: `${pct}%`, background: COLORS.tealMid, borderRadius: 4 }} />
@@ -272,13 +479,32 @@ function MapeamentoInicial() {
                 );
               })}
             </div>
-            <div style={{ background: COLORS.tealLight, borderRadius: 16, padding: "22px 22px", marginBottom: 24 }}>
-              <p style={{ fontSize: 14, color: COLORS.teal, lineHeight: 1.65 }}>
-                <strong>Isso é um retrato preliminar</strong>, não um diagnóstico. Ele te ajuda a nomear o que você sente
-                — mas a leitura completa, com testes validados e acompanhamento profissional, acontece na Avaliação Interdisciplinar.
+
+            <div style={{ background: COLORS.tealLight, borderRadius: 16, padding: "20px 20px", marginBottom: 20 }}>
+              <p style={{ fontSize: 12.5, letterSpacing: "0.06em", textTransform: "uppercase", color: COLORS.teal, fontWeight: 700, marginBottom: 10 }}>
+                O que fazer agora
+              </p>
+              {TIPS[dominantBlock.key].map((t, i) => (
+                <p key={i} style={{ fontSize: 13.5, color: COLORS.teal, lineHeight: 1.6, marginBottom: 8 }}>• {t}</p>
+              ))}
+            </div>
+
+            <div style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 16, padding: "20px 20px", marginBottom: 24 }}>
+              <p style={{ fontSize: 13.5, color: COLORS.grayD, lineHeight: 1.65 }}>
+                <strong>Isso é um retrato preliminar</strong>, não um diagnóstico. Ele te ajuda a nomear o que
+                você sente — mas a leitura completa, com testes validados e acompanhamento profissional,
+                acontece na Avaliação Interdisciplinar.
               </p>
             </div>
-            <a href="https://wa.me/5545991578060" target="_blank" rel="noopener noreferrer">
+
+            <a href="/ebook-mapeamento-inicial.pdf" download style={{ display: "block", marginBottom: 12 }}>
+              <button className="opt-btn" style={{ width: "100%", background: COLORS.white, color: COLORS.teal, border: `1.5px solid ${COLORS.teal}`, borderRadius: 12, padding: "15px 20px", fontSize: 14.5, fontWeight: 600 }}>
+                Baixar meu e-book
+              </button>
+            </a>
+
+            <a href={`https://wa.me/5545991578060?text=${encodeURIComponent(`Olá! Fiz o Mapeamento Inicial. Meu resultado foi ${total}/${MAX_SCORE} (${band.label}) e minha maior dificuldade é em ${area || "não informado"}. Meu nome é ${nome}.`)}`}
+              target="_blank" rel="noopener noreferrer">
               <button className="opt-btn" style={{ width: "100%", background: COLORS.teal, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600 }}>
                 Falar sobre o meu resultado no WhatsApp
               </button>
