@@ -122,11 +122,14 @@ const TIPS = {
 };
 
 function getBand(total) {
+  const q1 = Math.round(MAX_SCORE * 0.25);
+  const q2 = Math.round(MAX_SCORE * 0.5);
+  const q3 = Math.round(MAX_SCORE * 0.75);
   const pct = total / MAX_SCORE;
-  if (pct < 0.25) return { label: "Padrão pontual", text: "Seus resultados apontam sinais isolados, não um padrão consistente. Isso não significa que nada mereça atenção — só que, pelo que você respondeu aqui, não há um conjunto forte de indícios." };
-  if (pct < 0.5) return { label: "Padrão moderado", text: "Existe um conjunto de sinais que aparece com certa frequência. Vale entender com mais profundidade se esses pontos têm relação entre si e o que eles revelam sobre o seu funcionamento." };
-  if (pct < 0.75) return { label: "Padrão consistente", text: "Os sinais aparecem de forma consistente em várias áreas da sua vida. Esse tipo de padrão costuma justificar uma investigação mais aprofundada, com acompanhamento profissional." };
-  return { label: "Padrão muito consistente", text: "Praticamente todos os blocos mostram sinais fortes e recorrentes. Esse é o tipo de resultado que mais se beneficia de uma investigação clínica completa, feita com calma e profundidade." };
+  if (pct < 0.25) return { label: "Padrão pontual", min: 0, max: q1, text: "Seus resultados apontam sinais isolados, não um padrão consistente. Isso não significa que nada mereça atenção — só que, pelo que você respondeu aqui, não há um conjunto forte de indícios." };
+  if (pct < 0.5) return { label: "Padrão moderado", min: q1, max: q2, text: "Existe um conjunto de sinais que aparece com certa frequência. Vale entender com mais profundidade se esses pontos têm relação entre si e o que eles revelam sobre o seu funcionamento." };
+  if (pct < 0.75) return { label: "Padrão consistente", min: q2, max: q3, text: "Os sinais aparecem de forma consistente em várias áreas da sua vida. Esse tipo de padrão costuma justificar uma investigação mais aprofundada, com acompanhamento profissional." };
+  return { label: "Padrão muito consistente", min: q3, max: MAX_SCORE, text: "Praticamente todos os blocos mostram sinais fortes e recorrentes. Esse é o tipo de resultado que mais se beneficia de uma investigação clínica completa, feita com calma e profundidade." };
 }
 
 function RadarChart({ data }) {
@@ -443,7 +446,7 @@ function MapeamentoInicial() {
             </div>
 
             <div style={{ background: COLORS.grayD, color: COLORS.white, borderRadius: 16, padding: "26px 22px", textAlign: "center", marginBottom: 20 }}>
-              <p style={{ fontSize: 11.5, color: COLORS.grayB, marginBottom: 6 }}>Sua pontuação: 0 a {MAX_SCORE}</p>
+              <p style={{ fontSize: 11.5, color: COLORS.grayB, marginBottom: 6 }}>Sua pontuação: {band.min} a {band.max}</p>
               <p className="serif" style={{ fontSize: 42, marginBottom: 4 }}>
                 {total}<span style={{ fontSize: 17, color: COLORS.grayB }}>/{MAX_SCORE}</span>
               </p>
@@ -496,6 +499,24 @@ function MapeamentoInicial() {
                 acontece na Avaliação Interdisciplinar.
               </p>
             </div>
+
+            <div style={{ background: COLORS.amberLight, borderLeft: `4px solid ${COLORS.amber}`, borderRadius: 12, padding: "18px 20px", marginBottom: 24 }}>
+              <p style={{ fontSize: 13, letterSpacing: "0.04em", color: COLORS.grayD, fontWeight: 700, marginBottom: 8 }}>
+                Próximo passo
+              </p>
+              <p style={{ fontSize: 13.5, color: COLORS.grayD, lineHeight: 1.6 }}>
+                Você já pode baixar seu e-book abaixo. Se esse padrão faz sentido pra você e quiser
+                aprofundar com calma, dá pra agendar uma Consulta Inicial — uma conversa só sua e
+                minha, onde eu te escuto e monto um plano personalizado a partir daqui.
+              </p>
+            </div>
+
+            <a href={`https://wa.me/5545991578060?text=${encodeURIComponent(`Olá! Fiz o Mapeamento Inicial e gostaria de agendar uma Consulta Inicial. Meu nome é ${nome}.`)}`}
+              target="_blank" rel="noopener noreferrer" style={{ display: "block", marginBottom: 12 }}>
+              <button className="opt-btn" style={{ width: "100%", background: COLORS.amber, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600 }}>
+                Agendar minha Consulta Inicial
+              </button>
+            </a>
 
             <a href="/ebook-mapeamento-inicial.pdf" download style={{ display: "block", marginBottom: 12 }}>
               <button className="opt-btn" style={{ width: "100%", background: COLORS.white, color: COLORS.teal, border: `1.5px solid ${COLORS.teal}`, borderRadius: 12, padding: "15px 20px", fontSize: 14.5, fontWeight: 600 }}>
