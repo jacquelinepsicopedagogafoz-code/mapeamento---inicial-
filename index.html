@@ -431,80 +431,75 @@ function MapeamentoInicial() {
 
         {screen === "resultado" && (
           <div className="fade-in">
-            <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, textAlign: "center", marginBottom: 6 }}>
+            <p style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, textAlign: "center", marginBottom: 8 }}>
               Seu resultado
             </p>
-            <h2 className="serif" style={{ fontSize: 27, color: COLORS.grayD, textAlign: "center", marginBottom: 4 }}>
+            <h2 className="serif" style={{ fontSize: 28, color: COLORS.grayD, textAlign: "center", marginBottom: 28 }}>
               {nome ? `${nome}, aqui está seu Mapa` : "Seu Mapa de Funcionamento"}
             </h2>
-            <p style={{ fontSize: 13, color: COLORS.grayM, textAlign: "center", marginBottom: 20 }}>
-              Área com padrão mais forte: <strong style={{ color: COLORS.teal }}>{dominantBlock.label}</strong>
-            </p>
 
-            <div style={{ background: COLORS.white, borderRadius: 16, border: `1px solid ${COLORS.grayB}`, padding: "20px 8px 8px", marginBottom: 20, display: "flex", justifyContent: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
               <RadarChart data={radarData} />
             </div>
 
-            <div style={{ background: COLORS.grayD, color: COLORS.white, borderRadius: 16, padding: "26px 22px", textAlign: "center", marginBottom: 20 }}>
-              <p style={{ fontSize: 11.5, color: COLORS.grayB, marginBottom: 6 }}>Sua pontuação: {band.min} a {band.max}</p>
-              <p className="serif" style={{ fontSize: 42, marginBottom: 4 }}>
-                {total}<span style={{ fontSize: 17, color: COLORS.grayB }}>/{MAX_SCORE}</span>
+            <div style={{ background: COLORS.grayD, color: COLORS.white, borderRadius: 20, padding: "34px 28px", textAlign: "center", marginBottom: 32 }}>
+              <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: COLORS.tealAcc, marginBottom: 10 }}>
+                Faixa: {band.min} a {band.max} pontos
               </p>
-              <p style={{ fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: COLORS.amber, fontWeight: 600, marginBottom: 10 }}>
+              <p className="serif" style={{ fontSize: 46, marginBottom: 2, lineHeight: 1 }}>
+                {total}<span style={{ fontSize: 18, color: COLORS.grayB }}> / {MAX_SCORE}</span>
+              </p>
+              <p style={{ fontSize: 13.5, letterSpacing: "0.06em", textTransform: "uppercase", color: COLORS.amber, fontWeight: 600, margin: "10px 0 18px" }}>
                 {band.label}
               </p>
-              <p style={{ fontSize: 14, color: COLORS.grayB, lineHeight: 1.6, maxWidth: 380, margin: "0 auto" }}>{band.text}</p>
+              <p style={{ fontSize: 14.5, color: COLORS.grayB, lineHeight: 1.7, maxWidth: 380, margin: "0 auto" }}>
+                {band.text}
+              </p>
+              {area && (
+                <p style={{ fontSize: 13.5, color: COLORS.tealAcc, lineHeight: 1.7, maxWidth: 380, margin: "18px auto 0", paddingTop: 18, borderTop: `1px solid rgba(255,255,255,0.15)` }}>
+                  Em <strong>{area}</strong>, {AREA_TEXT[area]}
+                </p>
+              )}
             </div>
 
-            {area && (
-              <div style={{ background: COLORS.roseLight, borderRadius: 14, padding: "16px 18px", marginBottom: 20 }}>
-                <p style={{ fontSize: 13.5, color: COLORS.rose, lineHeight: 1.6 }}>
-                  Você disse que sente mais dificuldade em <strong>{area}</strong> — {AREA_TEXT[area]}
-                </p>
-              </div>
-            )}
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+            <p className="serif" style={{ fontSize: 16, color: COLORS.grayD, marginBottom: 14 }}>Por bloco</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>
               {BLOCKS.map((b) => {
                 const score = blockScore(b);
                 const maxB = b.items.length * 4;
                 const pct = Math.round((score / maxB) * 100);
                 return (
-                  <div key={b.key} style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 12, padding: "12px 16px" }}>
+                  <div key={b.key}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                      <span style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.grayD }}>{b.title}</span>
-                      <span style={{ fontSize: 13, color: COLORS.tealMid, fontWeight: 600 }}>{score}/{maxB}</span>
+                      <span style={{ fontSize: 13.5, color: COLORS.grayD }}>{b.title}</span>
+                      <span style={{ fontSize: 13, color: COLORS.grayM }}>{score}/{maxB}</span>
                     </div>
-                    <div style={{ height: 6, background: COLORS.grayL, borderRadius: 4, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${pct}%`, background: COLORS.tealMid, borderRadius: 4 }} />
+                    <div style={{ height: 4, background: COLORS.grayL, borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, background: b.key === dominantBlock.key ? COLORS.teal : COLORS.grayB, borderRadius: 4 }} />
                     </div>
                   </div>
                 );
               })}
             </div>
 
-            <div style={{ background: COLORS.tealLight, borderRadius: 16, padding: "20px 20px", marginBottom: 20 }}>
-              <p style={{ fontSize: 12.5, letterSpacing: "0.06em", textTransform: "uppercase", color: COLORS.teal, fontWeight: 700, marginBottom: 10 }}>
-                O que fazer agora
-              </p>
+            <p className="serif" style={{ fontSize: 16, color: COLORS.grayD, marginBottom: 12 }}>O que fazer agora</p>
+            <div style={{ marginBottom: 28 }}>
               {TIPS[dominantBlock.key].map((t, i) => (
-                <p key={i} style={{ fontSize: 13.5, color: COLORS.teal, lineHeight: 1.6, marginBottom: 8 }}>• {t}</p>
+                <p key={i} style={{ fontSize: 14, color: COLORS.grayD, lineHeight: 1.7, marginBottom: 10, paddingLeft: 16, borderLeft: `2px solid ${COLORS.tealAcc}` }}>{t}</p>
               ))}
             </div>
 
-            <div style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 16, padding: "20px 20px", marginBottom: 24 }}>
-              <p style={{ fontSize: 13.5, color: COLORS.grayD, lineHeight: 1.65 }}>
-                <strong>Isso é um retrato preliminar</strong>, não um diagnóstico. Ele te ajuda a nomear o que
-                você sente — mas a leitura completa, com testes validados e acompanhamento profissional,
-                acontece na Avaliação Interdisciplinar.
-              </p>
-            </div>
+            <p style={{ fontSize: 12.5, color: COLORS.grayM, lineHeight: 1.6, fontStyle: "italic", marginBottom: 32 }}>
+              Isso é um retrato preliminar, não um diagnóstico. Ele te ajuda a nomear o que você sente —
+              a leitura completa, com testes validados e acompanhamento profissional, acontece na
+              Avaliação Interdisciplinar.
+            </p>
 
-            <div style={{ background: COLORS.amberLight, borderLeft: `4px solid ${COLORS.amber}`, borderRadius: 12, padding: "18px 20px", marginBottom: 24 }}>
-              <p style={{ fontSize: 13, letterSpacing: "0.04em", color: COLORS.grayD, fontWeight: 700, marginBottom: 8 }}>
+            <div style={{ borderLeft: `3px solid ${COLORS.amber}`, paddingLeft: 18, marginBottom: 28 }}>
+              <p style={{ fontSize: 12.5, letterSpacing: "0.06em", textTransform: "uppercase", color: COLORS.grayD, fontWeight: 700, marginBottom: 8 }}>
                 Próximo passo
               </p>
-              <p style={{ fontSize: 13.5, color: COLORS.grayD, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14, color: COLORS.grayD, lineHeight: 1.65 }}>
                 Você já pode baixar seu e-book abaixo. Se esse padrão faz sentido pra você e quiser
                 aprofundar com calma, dá pra agendar uma Consulta Inicial — uma conversa só sua e
                 minha, onde eu te escuto e monto um plano personalizado a partir daqui.
@@ -518,21 +513,17 @@ function MapeamentoInicial() {
               </button>
             </a>
 
-            <a href="/ebook-mapeamento-inicial.pdf" download style={{ display: "block", marginBottom: 12 }}>
-              <button className="opt-btn" style={{ width: "100%", background: COLORS.white, color: COLORS.teal, border: `1.5px solid ${COLORS.teal}`, borderRadius: 12, padding: "15px 20px", fontSize: 14.5, fontWeight: 600 }}>
-                Baixar meu e-book
-              </button>
-            </a>
-
             <a href={`https://wa.me/5545991578060?text=${encodeURIComponent(`Olá! Fiz o Mapeamento Inicial. Meu resultado foi ${total}/${MAX_SCORE} (${band.label}) e minha maior dificuldade é em ${area || "não informado"}. Meu nome é ${nome}.`)}`}
-              target="_blank" rel="noopener noreferrer">
-              <button className="opt-btn" style={{ width: "100%", background: COLORS.teal, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600 }}>
+              target="_blank" rel="noopener noreferrer" style={{ display: "block", marginBottom: 16 }}>
+              <button className="opt-btn" style={{ width: "100%", background: COLORS.white, color: COLORS.teal, border: `1.5px solid ${COLORS.teal}`, borderRadius: 12, padding: "15px 20px", fontSize: 14.5, fontWeight: 600 }}>
                 Falar sobre o meu resultado no WhatsApp
               </button>
             </a>
-            <p style={{ fontSize: 12, color: COLORS.grayM, textAlign: "center", marginTop: 12 }}>
-              Sem compromisso — é só o próximo passo, se você quiser dar.
-            </p>
+
+            <a href="/ebook-mapeamento-inicial.pdf" download style={{ display: "block", textAlign: "center" }}>
+              <span style={{ fontSize: 13.5, color: COLORS.grayM, textDecoration: "underline" }}>Baixar meu e-book</span>
+            </a>
+        
           </div>
         )}
       </div>
