@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mapeamento Inicial | Jacqueline Eidt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Jost', sans-serif; background: #FAF7F2; color: #2C2C2A; }
+  .serif { font-family: 'Playfair Display', serif; }
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  button { cursor: pointer; font-family: inherit; border: none; }
+  button:focus-visible { outline: 2px solid #085041; outline-offset: 2px; }
+  .opt-btn { transition: all 0.15s ease; }
+  .opt-btn:hover { transform: translateY(-1px); }
+  a { text-decoration: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+const COLORS = {
+  teal: "#085041", tealMid: "#1D9E75", tealLight: "#E1F5EE", tealAcc: "#9FE1CB",
+  amber: "#EF9F27", amberLight: "#FAEEDA", rose: "#C4748A", roseLight: "#F5E7EB",
+  grayD: "#2C2C2A", grayM: "#5F5E5A", grayL: "#F7F5F0", grayB: "#D3D1C7",
+  white: "#FFFFFF", cream: "#FAF7F2",
+};
+
+const BLOCKS = [
+  { key: "execucao", label: "Execução", number: "01", title: "Execução e Iniciação", subtitle: "Dificuldade de começar e terminar",
+    items: [
+      { text: "Sei o que precisa ser feito, mas não consigo começar.", note: "A tarefa fica na cabeça por horas — ou dias — sem sair do lugar." },
+      { text: "Começo com energia e abandono antes de terminar.", note: "O início é fácil. Manter até o fim é o problema real." },
+      { text: "Preciso de pressão ou prazo urgente para agir.", note: "Sem deadline, a tarefa simplesmente não acontece." },
+      { text: "Tenho muitas ideias mas executo poucas.", note: "O planejamento é rico. A execução é escassa." },
+      { text: "Deixo tarefas simples acumularem por muito tempo.", note: "Coisas de 5 minutos ficam semanas sem serem feitas." },
+      { text: "Sinto que estou sempre atrasada em relação ao que deveria ter feito.", note: "A sensação de déficit é constante, independente do que entrega." },
+    ]},
+  { key: "atencao", label: "Atenção", number: "02", title: "Atenção e Memória", subtitle: "Como seu cérebro processa informação",
+    items: [
+      { text: "Esqueço o que estava fazendo no meio da tarefa.", note: "Uma interrupção é suficiente para perder completamente o fio." },
+      { text: "Tenho dificuldade de manter o foco em algo que não me interessa.", note: "Se não há interesse ou urgência, o cérebro simplesmente não prende." },
+      { text: "Leio um texto e preciso reler porque não absorvi nada.", note: "Os olhos passam pelas palavras, mas o conteúdo não fica." },
+      { text: "Me distraio facilmente com estímulos externos ou pensamentos.", note: "Um barulho, uma notificação, um pensamento — e o foco vai embora." },
+      { text: "Esqueço compromissos, prazos ou informações importantes.", note: "Mesmo com lembretes, algo sempre passa." },
+      { text: "Tenho dificuldade de acompanhar conversas longas ou reuniões.", note: "A mente deriva antes de chegar ao final." },
+    ]},
+  { key: "emocional", label: "Emocional", number: "03", title: "Regulação Emocional", subtitle: "Como você lida com frustração e pressão",
+    items: [
+      { text: "Reajo com intensidade desproporcional a situações cotidianas.", note: "A resposta emocional chega antes de você conseguir pensar." },
+      { text: "Pequenas frustrações me tiram do sério com facilidade.", note: "O que parece pequeno de fora, por dentro é grande." },
+      { text: "Sinto vergonha ou culpa forte por coisas que outras pessoas levam na esportiva.", note: "A régua interna é mais dura do que precisa ser." },
+      { text: "Tenho dificuldade de me acalmar depois de me irritar ou me frustrar.", note: "Leva tempo pra voltar ao normal depois de uma reação forte." },
+      { text: "Sinto que minhas emoções mudam rápido, sem aviso.", note: "Uma hora está bem, na outra já não está." },
+      { text: "Evito situações só para não correr o risco de me frustrar.", note: "A antecipação da frustração já é motivo suficiente pra evitar." },
+    ]},
+  { key: "social", label: "Traços TEA", number: "04", title: "Sensorial e Social", subtitle: "Como você processa o ambiente e as interações",
+    items: [
+      { text: "Sons, luzes ou texturas específicas me incomodam mais do que parecem incomodar outras pessoas.", note: "O ambiente pode ficar insuportável por razões que os outros nem percebem." },
+      { text: "Prefiro rotinas previsíveis e fico desconfortável quando elas mudam de repente.", note: "A mudança inesperada custa mais energia do que deveria." },
+      { text: "Preciso de tempo sozinha para recarregar depois de interações sociais.", note: "Estar com pessoas, mesmo que bem, tem um custo que precisa ser reposto." },
+      { text: "Tenho interesses profundos e específicos que ocupam boa parte da minha atenção.", note: "Quando o assunto interessa, o mergulho é total." },
+      { text: "Sinto que preciso 'atuar' ou estudar como agir em situações sociais.", note: "O que parece natural pros outros, pra você é um roteiro decorado." },
+      { text: "Fico exausta depois de um dia com muito estímulo, mesmo sem esforço físico.", note: "O cansaço é real, mesmo sem explicação óbvia pra quem olha de fora." },
+    ]},
+];
+
+const TOTAL_QUESTIONS = BLOCKS.reduce((sum, b) => sum + b.items.length, 0);
+
+function getBand(total) {
+  const pct = total / TOTAL_QUESTIONS;
+  if (pct < 0.25) return { label: "Padrão pontual", text: "Seus resultados apontam sinais isolados, não um padrão consistente. Isso não significa que nada mereça atenção — só que, pelo que você respondeu aqui, não há um conjunto forte de indícios." };
+  if (pct < 0.5) return { label: "Padrão moderado", text: "Existe um conjunto de sinais que aparece com certa frequência. Vale entender com mais profundidade se esses pontos têm relação entre si e o que eles revelam sobre o seu funcionamento." };
+  if (pct < 0.75) return { label: "Padrão consistente", text: "Os sinais aparecem de forma consistente em várias áreas da sua vida. Esse tipo de padrão costuma justificar uma investigação mais aprofundada, com acompanhamento profissional." };
+  return { label: "Padrão muito consistente", text: "Praticamente todos os blocos mostram sinais fortes e recorrentes. Esse é o tipo de resultado que mais se beneficia de uma investigação clínica completa, feita com calma e profundidade." };
+}
+
+function RadarChart({ data }) {
+  const size = 280;
+  const center = size / 2;
+  const maxR = size / 2 - 44;
+  const n = data.length;
+  const angleFor = (i) => (Math.PI * 2 * i) / n - Math.PI / 2;
+
+  function pointFor(i, fraction) {
+    const angle = angleFor(i);
+    const r = maxR * fraction;
+    return [center + r * Math.cos(angle), center + r * Math.sin(angle)];
+  }
+
+  const rings = [0.25, 0.5, 0.75, 1];
+  const dataPoints = data.map((d, i) => pointFor(i, d.value / d.fullMark));
+  const dataPath = dataPoints.map((p) => p.join(",")).join(" ");
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="280">
+      {rings.map((f, ri) => {
+        const pts = data.map((_, i) => pointFor(i, f).join(",")).join(" ");
+        return <polygon key={ri} points={pts} fill="none" stroke={COLORS.grayB} strokeWidth="1" />;
+      })}
+      {data.map((_, i) => {
+        const [x, y] = pointFor(i, 1);
+        return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke={COLORS.grayB} strokeWidth="1" />;
+      })}
+      <polygon points={dataPath} fill={COLORS.tealMid} fillOpacity="0.35" stroke={COLORS.teal} strokeWidth="2" />
+      {dataPoints.map((p, i) => (
+        <circle key={i} cx={p[0]} cy={p[1]} r="3.5" fill={COLORS.teal} />
+      ))}
+      {data.map((d, i) => {
+        const [x, y] = pointFor(i, 1.28);
+        return (
+          <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle"
+            fontSize="12" fontFamily="Jost" fill={COLORS.grayD}>
+            {d.subject}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
+
+function MapeamentoInicial() {
+  const [screen, setScreen] = useState("intro");
+  const [blockIndex, setBlockIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+
+  const currentBlock = BLOCKS[blockIndex];
+
+  function setAnswer(blockKey, itemIndex, value) {
+    setAnswers((prev) => ({ ...prev, [`${blockKey}-${itemIndex}`]: value }));
+  }
+  function blockAnswered(block) {
+    return block.items.every((_, i) => answers[`${block.key}-${i}`] !== undefined);
+  }
+  function blockScore(block) {
+    return block.items.reduce((sum, _, i) => sum + (answers[`${block.key}-${i}`] ? 1 : 0), 0);
+  }
+
+  const total = BLOCKS.reduce((sum, b) => sum + blockScore(b), 0);
+  const band = getBand(total);
+  const radarData = BLOCKS.map((b) => ({ subject: b.label, value: blockScore(b), fullMark: b.items.length }));
+  const dominantIndex = BLOCKS.reduce((best, b, i) => (blockScore(b) > blockScore(BLOCKS[best]) ? i : best), 0);
+  const progress = screen === "questions" ? Math.round((blockIndex / BLOCKS.length) * 100) : screen === "result" ? 100 : 0;
+
+  return (
+    <div style={{ minHeight: "100vh", background: COLORS.cream, display: "flex", justifyContent: "center", padding: "0 0 60px" }}>
+      <div style={{ width: "100%", maxWidth: 480, padding: "28px 20px" }}>
+        {screen !== "intro" && (
+          <div style={{ height: 4, background: COLORS.grayB, borderRadius: 4, marginBottom: 28, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${progress}%`, background: COLORS.teal, borderRadius: 4, transition: "width 0.3s ease" }} />
+          </div>
+        )}
+
+        {screen === "intro" && (
+          <div className="fade-in">
+            <p style={{ fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, marginBottom: 10 }}>
+              Mapeamento Inicial
+            </p>
+            <h1 className="serif" style={{ fontSize: 30, lineHeight: 1.25, color: COLORS.grayD, marginBottom: 16 }}>
+              Você sabe exatamente o que precisa fazer.<br />E mesmo assim não consegue.
+            </h1>
+            <p style={{ fontSize: 15, color: COLORS.grayM, lineHeight: 1.65, marginBottom: 24 }}>
+              Isso pode ser só uma fase. Ou pode ser um padrão — de como o seu cérebro funciona de verdade.
+              Em poucos minutos, você mapeia os seus sinais em quatro áreas e recebe um retrato inicial do seu funcionamento.
+            </p>
+            <div style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 16, padding: "20px 20px", marginBottom: 28 }}>
+              {BLOCKS.map((b, i) => (
+                <div key={b.key} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < BLOCKS.length - 1 ? `1px solid ${COLORS.grayL}` : "none" }}>
+                  <span className="serif" style={{ fontSize: 13, color: COLORS.tealAcc, fontWeight: 600, minWidth: 20 }}>{b.number}</span>
+                  <span style={{ fontSize: 14, color: COLORS.grayD }}>{b.title}</span>
+                </div>
+              ))}
+            </div>
+            <button className="opt-btn" onClick={() => setScreen("questions")}
+              style={{ width: "100%", background: COLORS.teal, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600, letterSpacing: "0.02em" }}>
+              Começar meu mapeamento
+            </button>
+            <p style={{ fontSize: 12, color: COLORS.grayM, textAlign: "center", marginTop: 12 }}>
+              Leva cerca de 5 minutos · {TOTAL_QUESTIONS} afirmações
+            </p>
+          </div>
+        )}
+
+        {screen === "questions" && (
+          <div className="fade-in" key={currentBlock.key}>
+            <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, marginBottom: 6 }}>
+              Bloco {currentBlock.number} de 0{BLOCKS.length}
+            </p>
+            <h2 className="serif" style={{ fontSize: 24, color: COLORS.grayD, marginBottom: 4 }}>{currentBlock.title}</h2>
+            <p style={{ fontSize: 14, color: COLORS.grayM, marginBottom: 22 }}>{currentBlock.subtitle}</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 26 }}>
+              {currentBlock.items.map((item, i) => {
+                const key = `${currentBlock.key}-${i}`;
+                const val = answers[key];
+                return (
+                  <div key={key} style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 14, padding: "16px 16px" }}>
+                    <p style={{ fontSize: 14.5, color: COLORS.grayD, lineHeight: 1.5, marginBottom: 4 }}>{item.text}</p>
+                    <p style={{ fontSize: 12.5, color: COLORS.grayM, lineHeight: 1.5, marginBottom: 12 }}>{item.note}</p>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button className="opt-btn" onClick={() => setAnswer(currentBlock.key, i, true)}
+                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${val === true ? COLORS.teal : COLORS.grayB}`, background: val === true ? COLORS.tealLight : COLORS.white, color: val === true ? COLORS.teal : COLORS.grayM, fontWeight: 600, fontSize: 13.5 }}>
+                        Sim
+                      </button>
+                      <button className="opt-btn" onClick={() => setAnswer(currentBlock.key, i, false)}
+                        style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${val === false ? COLORS.rose : COLORS.grayB}`, background: val === false ? COLORS.roseLight : COLORS.white, color: val === false ? COLORS.rose : COLORS.grayM, fontWeight: 600, fontSize: 13.5 }}>
+                        Não
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              {blockIndex > 0 && (
+                <button onClick={() => setBlockIndex((b) => b - 1)}
+                  style={{ flex: "0 0 auto", padding: "14px 18px", borderRadius: 12, border: `1.5px solid ${COLORS.grayB}`, background: COLORS.white, color: COLORS.grayM, fontSize: 14, fontWeight: 600 }}>
+                  ← Voltar
+                </button>
+              )}
+              <button disabled={!blockAnswered(currentBlock)}
+                onClick={() => { if (blockIndex < BLOCKS.length - 1) setBlockIndex((b) => b + 1); else setScreen("result"); }}
+                style={{ flex: 1, padding: "14px 18px", borderRadius: 12, border: "none", background: blockAnswered(currentBlock) ? COLORS.teal : COLORS.grayB, color: COLORS.white, fontSize: 14, fontWeight: 600, opacity: blockAnswered(currentBlock) ? 1 : 0.7 }}>
+                {blockIndex < BLOCKS.length - 1 ? "Próximo bloco →" : "Ver meu mapa"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {screen === "result" && (
+          <div className="fade-in">
+            <p style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: COLORS.tealMid, fontWeight: 600, textAlign: "center", marginBottom: 6 }}>
+              Seu resultado
+            </p>
+            <h2 className="serif" style={{ fontSize: 28, color: COLORS.grayD, textAlign: "center", marginBottom: 4 }}>Mapa de Funcionamento</h2>
+            <p style={{ fontSize: 13, color: COLORS.grayM, textAlign: "center", marginBottom: 20 }}>
+              Área com padrão mais forte: <strong style={{ color: COLORS.teal }}>{BLOCKS[dominantIndex].label}</strong>
+            </p>
+            <div style={{ background: COLORS.white, borderRadius: 16, border: `1px solid ${COLORS.grayB}`, padding: "20px 8px 8px", marginBottom: 20, display: "flex", justifyContent: "center" }}>
+              <RadarChart data={radarData} />
+            </div>
+            <div style={{ background: COLORS.grayD, color: COLORS.white, borderRadius: 16, padding: "28px 24px", textAlign: "center", marginBottom: 20 }}>
+              <p className="serif" style={{ fontSize: 44, marginBottom: 2 }}>
+                {total}<span style={{ fontSize: 18, color: COLORS.grayB }}>/{TOTAL_QUESTIONS}</span>
+              </p>
+              <p style={{ fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: COLORS.amber, fontWeight: 600, marginBottom: 10 }}>
+                {band.label}
+              </p>
+              <p style={{ fontSize: 14, color: COLORS.grayB, lineHeight: 1.6, maxWidth: 380, margin: "0 auto" }}>{band.text}</p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+              {BLOCKS.map((b) => {
+                const score = blockScore(b);
+                const pct = Math.round((score / b.items.length) * 100);
+                return (
+                  <div key={b.key} style={{ background: COLORS.white, border: `1px solid ${COLORS.grayB}`, borderRadius: 12, padding: "12px 16px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.grayD }}>{b.title}</span>
+                      <span style={{ fontSize: 13, color: COLORS.tealMid, fontWeight: 600 }}>{score}/{b.items.length}</span>
+                    </div>
+                    <div style={{ height: 6, background: COLORS.grayL, borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, background: COLORS.tealMid, borderRadius: 4 }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ background: COLORS.tealLight, borderRadius: 16, padding: "22px 22px", marginBottom: 24 }}>
+              <p style={{ fontSize: 14, color: COLORS.teal, lineHeight: 1.65 }}>
+                <strong>Isso é um retrato preliminar</strong>, não um diagnóstico. Ele te ajuda a nomear o que você sente
+                — mas a leitura completa, com testes validados e acompanhamento profissional, acontece na Avaliação Interdisciplinar.
+              </p>
+            </div>
+            <a href="https://wa.me/5545991578060" target="_blank" rel="noopener noreferrer">
+              <button className="opt-btn" style={{ width: "100%", background: COLORS.teal, color: COLORS.white, borderRadius: 12, padding: "16px 20px", fontSize: 15, fontWeight: 600 }}>
+                Falar sobre o meu resultado no WhatsApp
+              </button>
+            </a>
+            <p style={{ fontSize: 12, color: COLORS.grayM, textAlign: "center", marginTop: 12 }}>
+              Sem compromisso — é só o próximo passo, se você quiser dar.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<MapeamentoInicial />);
+</script>
+</body>
+</html>
