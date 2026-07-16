@@ -126,13 +126,37 @@ function getBand(total) {
   const q2 = Math.round(MAX_SCORE * 0.5);
   const q3 = Math.round(MAX_SCORE * 0.75);
   const pct = total / MAX_SCORE;
-  if (pct < 0.25) return { label: "Padrão pontual", min: 0, max: q1, text: "Seus resultados apontam sinais isolados, não um padrão consistente. Isso não significa que nada mereça atenção — só que, pelo que você respondeu aqui, não há um conjunto forte de indícios." };
-  if (pct < 0.5) return { label: "Padrão moderado", min: q1, max: q2, text: "Existe um conjunto de sinais que aparece com certa frequência. Vale entender com mais profundidade se esses pontos têm relação entre si e o que eles revelam sobre o seu funcionamento." };
-  if (pct < 0.75) return { label: "Padrão consistente", min: q2, max: q3, text: "Os sinais aparecem de forma consistente em várias áreas da sua vida. Esse tipo de padrão costuma justificar uma investigação mais aprofundada, com acompanhamento profissional." };
-  return { label: "Padrão muito consistente", min: q3, max: MAX_SCORE, text: "Praticamente todos os blocos mostram sinais fortes e recorrentes. Esse é o tipo de resultado que mais se beneficia de uma investigação clínica completa, feita com calma e profundidade." };
+  if (pct < 0.25) return { label: "Padrão pontual", min: 0, max: q1 };
+  if (pct < 0.5) return { label: "Padrão moderado", min: q1, max: q2 };
+  if (pct < 0.75) return { label: "Padrão consistente", min: q2, max: q3 };
+  return { label: "Padrão muito consistente", min: q3, max: MAX_SCORE };
 }
 
-function RadarChart({ data }) {
+const COMBO_TEXT = {
+  "execucao|atencao": "seus sinais mais fortes aparecem juntos em Execução e Atenção — o padrão típico é saber o que fazer, mas perder o fio no meio do caminho, seja por travar antes de começar, seja por se distrair depois.",
+  "execucao|emocional": "seus sinais mais fortes aparecem juntos em Execução e Emocional — o padrão típico é travar na tarefa e, na sequência, sentir uma frustração ou culpa desproporcional por não ter conseguido.",
+  "execucao|social": "seus sinais mais fortes aparecem juntos em Execução e no bloco Sensorial/Social — o padrão típico é a dificuldade de iniciar tarefas se somar a um ambiente ou rotina que pesa mais do que deveria.",
+  "atencao|emocional": "seus sinais mais fortes aparecem juntos em Atenção e Emocional — o padrão típico é a dificuldade de sustentar o foco vir acompanhada de reações emocionais intensas quando algo sai do previsto.",
+  "atencao|social": "seus sinais mais fortes aparecem juntos em Atenção e no bloco Sensorial/Social — o padrão típico é a atenção oscilar bastante conforme o ambiente ao redor, sensorial ou social, muda.",
+  "emocional|social": "seus sinais mais fortes aparecem juntos em Emocional e no bloco Sensorial/Social — o padrão típico é sentir as coisas com intensidade e, ao mesmo tempo, precisar de mais esforço pra lidar com estímulos e interações.",
+};
+
+function comboKey(a, b) {
+  return [a, b].sort().join("|");
+}
+
+function getInsightText(dominantKey, secondaryKey, band) {
+  const combo = COMBO_TEXT[comboKey(dominantKey, secondaryKey)];
+  const prefix = {
+    "Padrão pontual": "Nada aqui aponta um padrão forte ainda, mas ",
+    "Padrão moderado": "Um padrão começa a aparecer: ",
+    "Padrão consistente": "Um padrão consistente aparece: ",
+    "Padrão muito consistente": "Um padrão forte e recorrente aparece: ",
+  }[band.label];
+  return prefix + combo;
+}
+
+function RadarChart({ data, dominantIndex }) {
   const size = 280;
   const center = size / 2;
   const maxR = size / 2 - 44;
@@ -146,8 +170,9 @@ function RadarChart({ data }) {
   const rings = [0.25, 0.5, 0.75, 1];
   const dataPoints = data.map((d, i) => pointFor(i, d.value / d.fullMark));
   const dataPath = dataPoints.map((p) => p.join(",")).join(" ");
+  const [pinX, pinY] = dataPoints[dominantIndex];
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="280">
+    <svg viewBox={`0 0 ${size} ${size + 18}`} width="100%" height="298">
       {rings.map((f, ri) => {
         const pts = data.map((_, i) => pointFor(i, f).join(",")).join(" ");
         return <polygon key={ri} points={pts} fill="none" stroke={COLORS.grayB} strokeWidth="1" />;
@@ -158,10 +183,12 @@ function RadarChart({ data }) {
       })}
       <polygon points={dataPath} fill={COLORS.tealMid} fillOpacity="0.35" stroke={COLORS.teal} strokeWidth="2" />
       {dataPoints.map((p, i) => (<circle key={i} cx={p[0]} cy={p[1]} r="3.5" fill={COLORS.teal} />))}
+      <circle cx={pinX} cy={pinY} r="9" fill="none" stroke={COLORS.amber} strokeWidth="1.5" opacity="0.5" />
+      <circle cx={pinX} cy={pinY} r="5.5" fill={COLORS.amber} stroke={COLORS.white} strokeWidth="1.5" />
       {data.map((d, i) => {
         const [x, y] = pointFor(i, 1.28);
         return (
-          <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="11.5" fontFamily="Jost" fill={COLORS.grayD}>
+          <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="11.5" fontFamily="Jost" fill={i === dominantIndex ? COLORS.amber : COLORS.grayD} fontWeight={i === dominantIndex ? "600" : "400"}>
             {d.subject}
           </text>
         );
@@ -206,6 +233,18 @@ function MapeamentoInicial() {
   const radarData = BLOCKS.map((b) => ({ subject: b.label, value: blockScore(b), fullMark: b.items.length * 4 }));
   const dominantIndex = BLOCKS.reduce((best, b, i) => (blockScore(b) > blockScore(BLOCKS[best]) ? i : best), 0);
   const dominantBlock = BLOCKS[dominantIndex];
+  const secondaryIndex = BLOCKS.reduce((best, b, i) => {
+    if (i === dominantIndex) return best;
+    if (best === dominantIndex || blockScore(b) > blockScore(BLOCKS[best])) return i;
+    return best;
+  }, dominantIndex === 0 ? 1 : 0);
+  const secondaryBlock = BLOCKS[secondaryIndex];
+  const insightText = getInsightText(dominantBlock.key, secondaryBlock.key, band);
+
+  const topItems = BLOCKS.flatMap((b) => b.items.map((text, i) => ({ text, value: answers[`${b.key}-${i}`] ?? 0 })))
+    .filter((it) => it.value >= 3)
+    .sort((a, c) => c.value - a.value)
+    .slice(0, 3);
 
   const progressPct =
     screen === "personalizacao" ? 5 :
@@ -439,7 +478,7 @@ function MapeamentoInicial() {
             </h2>
 
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
-              <RadarChart data={radarData} />
+              <RadarChart data={radarData} dominantIndex={dominantIndex} />
             </div>
 
             <div style={{ background: COLORS.grayD, color: COLORS.white, borderRadius: 20, padding: "34px 28px", textAlign: "center", marginBottom: 32 }}>
@@ -453,7 +492,7 @@ function MapeamentoInicial() {
                 {band.label}
               </p>
               <p style={{ fontSize: 14.5, color: COLORS.grayB, lineHeight: 1.7, maxWidth: 380, margin: "0 auto" }}>
-                {band.text}
+                {insightText}
               </p>
               {area && (
                 <p style={{ fontSize: 13.5, color: COLORS.tealAcc, lineHeight: 1.7, maxWidth: 380, margin: "18px auto 0", paddingTop: 18, borderTop: `1px solid rgba(255,255,255,0.15)` }}>
@@ -461,6 +500,17 @@ function MapeamentoInicial() {
                 </p>
               )}
             </div>
+
+            {topItems.length > 0 && (
+              <div style={{ marginBottom: 32 }}>
+                <p className="serif" style={{ fontSize: 16, color: COLORS.grayD, marginBottom: 12 }}>O que mais bateu em você</p>
+                {topItems.map((it, i) => (
+                  <p key={i} style={{ fontSize: 14, color: COLORS.grayD, lineHeight: 1.6, marginBottom: 10, fontStyle: "italic" }}>
+                    "{it.text}"
+                  </p>
+                ))}
+              </div>
+            )}
 
             <p className="serif" style={{ fontSize: 16, color: COLORS.grayD, marginBottom: 14 }}>Por bloco</p>
             <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>
